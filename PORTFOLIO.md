@@ -54,7 +54,7 @@
 - 用户账号：`demo@youwozai.app` / `Capybara123`
 - 守护人账号：`guardian@youwozai.app` / `Guardian123`
 - 线上 Beta：待部署后补充
-- GitHub 仓库：待初始化并推送后补充
+- GitHub 仓库：<https://github.com/jdfhd1688-code/youwozai-ai-companion>
 - [6 张脱敏产品截图](./portfolio/screenshots)
 - [产品演示视频](./portfolio/有我在APP演示视频.webm)
 
