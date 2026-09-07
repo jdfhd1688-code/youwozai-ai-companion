@@ -4,6 +4,10 @@
 
 本项目是 AI Solution 岗位作品集 / 可运行 MVP Demo。
 
+**线上公开 Demo：** https://youwozai-demo.jdfhd1688.chatgpt.site
+
+> 线上版本使用独立的模拟数据环境，仅供产品体验，请勿输入真实隐私信息。
+
 ![有我在首页](./portfolio/screenshots/01-首页与小在.png)
 
 [查看 6 张脱敏产品截图](./portfolio/screenshots) · [观看 88 秒演示视频](./portfolio/有我在APP演示视频.webm)

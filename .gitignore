@@ -12,3 +12,5 @@ tsconfig.tsbuildinfo
 *.zip
 portfolio/.qa/
 .doc-review/
+.site-deploy/
+.site-deploy-package.tar.gz
