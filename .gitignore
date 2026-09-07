@@ -1,0 +1,14 @@
+node_modules/
+.next/
+out/
+data/*.db
+data/*.db-journal
+.env
+.env.local
+npm-debug.log*
+pnpm-debug.log*
+tsconfig.tsbuildinfo
+*.log
+*.zip
+portfolio/.qa/
+.doc-review/

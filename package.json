@@ -1,0 +1,35 @@
+{
+  "name": "youwozai-mvp",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "有我在 APP MVP V1.0 - AI 陪伴型情绪记录 APP",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "db:init": "tsx scripts/init-db.ts",
+    "db:seed": "tsx scripts/seed-db.ts",
+    "capture:portfolio": "node scripts/capture-portfolio.mjs",
+    "test": "tsx --test tests/risk.test.ts tests/workflow.test.ts tests/display.test.ts tests/risk-expanded.test.ts tests/voice-playback.test.ts"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "dependencies": {
+    "lucide-react": "^0.468.0",
+    "next": "^15.1.6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.7",
+    "@types/react": "^19.0.7",
+    "@types/react-dom": "^19.0.3",
+    "fix-webm-duration": "^1.0.6",
+    "playwright-core": "^1.63.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}
