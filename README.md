@@ -10,13 +10,14 @@
 
 ![有我在首页](./portfolio/screenshots/01-首页与小在.png)
 
-[查看 7 张脱敏产品截图](./portfolio/screenshots) · [观看 88 秒演示视频](./portfolio/有我在APP演示视频.webm)
+[查看 7 张脱敏产品截图](./portfolio/screenshots) · [查看 Phase 2A 实际运行截图](./portfolio/phase2a) · [观看 88 秒演示视频](./portfolio/有我在APP演示视频.webm)
 
 ## 项目资料
 
 - [作品集一页说明](./PORTFOLIO.md)
 - [PRD、Spec、架构、安全、测试与 SDD 文档](./docs/README.md)
 - [Phase 1 审查、数据模型与 Phase 2 准入资料](./docs/phase1/)
+- [Phase 2A Message 持久化架构与迁移报告](./docs/phase2a/PHASE2A_ARCHITECTURE.md)
 - [标准演示手册](./docs/DEMO.md)
 - [作品集交付清单](./docs/PORTFOLIO_CHECKLIST.md)
 
@@ -86,6 +87,7 @@ DEMO_PASSWORD=Capybara123
 - 邮箱 + 密码注册登录、退出登录、账号注销
 - 首页小在主视觉、随机开场白与主要入口
 - “和小在聊聊”陪伴式对话
+- Conversation/Message 独立持久化、稳定 ID、顺序恢复与旧 JSON 兼容迁移
 - 小在角色语音：文字同步、播放/暂停/继续、自动播放设置与语速设置
 - AI 结构化情绪抽取、确认卡片、用户修改/保存
 - “我的这一段路”基础回顾，支持情绪记录查看、编辑、删除

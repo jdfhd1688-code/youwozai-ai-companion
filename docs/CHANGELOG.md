@@ -1,5 +1,15 @@
 # 有我在版本记录
 
+## 1.3.0 Phase 2A：Conversation Foundation
+
+### 新增与调整
+
+- 新增版本化、幂等 `messages` migration；真实本地数据库回填 69 条，0 跳过、0 warning，重复运行新增 0 条。
+- 聊天改为先独立持久化 user Message，再执行 Safety/assistant 流程；刷新恢复稳定 Message ID 与 sequence。
+- EmotionRecord 增加经所有权验证的 Conversation/Message provenance。
+- 保留并统一双写旧 `chat_sessions.messages`，新表读取失败时集中 fallback。
+- 自动化测试扩展为 48 项，并增加 390×844 Phase 2A runtime verifier。
+
 ## 1.2.0 Phase 1：2.0 骨架审查
 
 ### 新增与调整

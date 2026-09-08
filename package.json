@@ -10,12 +10,15 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test:integration": "tsx --test tests/workflow.test.ts",
+    "test:integration": "tsx --test tests/workflow.test.ts tests/message-persistence.test.ts",
     "db:init": "tsx scripts/init-db.ts",
+    "db:migrate": "tsx scripts/migrate-db.ts",
     "db:seed": "tsx scripts/seed-db.ts",
     "capture:portfolio": "node scripts/capture-portfolio.mjs",
+    "capture:phase2a": "node scripts/capture-phase2a.mjs",
     "verify:ui": "node scripts/verify-ui.mjs",
-    "test": "tsx --test tests/risk.test.ts tests/workflow.test.ts tests/display.test.ts tests/risk-expanded.test.ts tests/voice-playback.test.ts"
+    "verify:phase2a": "node scripts/verify-phase2a.mjs",
+    "test": "tsx --test tests/risk.test.ts tests/workflow.test.ts tests/display.test.ts tests/risk-expanded.test.ts tests/voice-playback.test.ts tests/message-persistence.test.ts"
   },
   "engines": {
     "node": ">=22.5.0"

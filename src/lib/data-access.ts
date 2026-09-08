@@ -23,6 +23,9 @@ export type EmotionRecordRow = {
   summary: string;
   riskLevel: RiskLevel;
   rawConversationRef: string | null;
+  sourceConversationId: string | null;
+  sourceMessageId: string | null;
+  extractionVersion: string | null;
   createdAt: string;
 };
 
@@ -101,16 +104,28 @@ export type ChatSessionRow = {
   id: string;
   userId: string;
   startedAt: string;
+  endedAt: string | null;
+  title: string | null;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
   messages: ChatMessage[];
 };
 
 export type ChatMessage = {
+  id: string;
+  conversationId: string;
   role: "user" | "xiaozai";
   content: string;
+  sequenceNo: number;
   createdAt: string;
   type?: "chat" | "draft" | "safety" | "system";
   draft?: StructuredDraft | null;
+  model?: string | null;
+  safetyLevel?: RiskLevel | null;
 };
+
+export type NewChatMessage = Omit<ChatMessage, "id" | "conversationId" | "sequenceNo"> & { id?: string };
 
 export type StructuredDraft = {
   emotionLabels: string[];
@@ -146,6 +161,9 @@ function mapRecord(row: any): EmotionRecordRow {
     summary: row.summary,
     riskLevel: row.risk_level,
     rawConversationRef: row.raw_conversation_ref,
+    sourceConversationId: row.source_conversation_id || null,
+    sourceMessageId: row.source_message_id || null,
+    extractionVersion: row.extraction_version || null,
     createdAt: row.created_at,
   };
 }
@@ -261,6 +279,9 @@ export function insertEmotionRecord(input: {
   summary: string;
   riskLevel: RiskLevel;
   rawConversationRef?: string | null;
+  sourceConversationId?: string | null;
+  sourceMessageId?: string | null;
+  extractionVersion?: string | null;
   createdAt?: string;
 }): EmotionRecordRow {
   const db = getDb();
@@ -268,8 +289,9 @@ export function insertEmotionRecord(input: {
   const createdAt = input.createdAt || nowIso();
   db.prepare(
     `INSERT INTO emotion_records
-     (id, user_id, emotion_labels, intensity, trigger, thought, response, summary, risk_level, raw_conversation_ref, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+     (id, user_id, emotion_labels, intensity, trigger, thought, response, summary, risk_level, raw_conversation_ref,
+      source_conversation_id, source_message_id, extraction_version, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).run(
     id,
     input.userId,
@@ -281,6 +303,9 @@ export function insertEmotionRecord(input: {
     input.summary,
     input.riskLevel,
     input.rawConversationRef || null,
+    input.sourceConversationId || null,
+    input.sourceMessageId || null,
+    input.extractionVersion || null,
     createdAt
   );
   return listEmotionRecords(input.userId).find((r) => r.id === id)!;
@@ -675,24 +700,136 @@ export function setUserSetting(userId: string, key: string, value: string): void
   ).run(userId, key, value, nowIso());
 }
 
+function parseMetadata(value: unknown): Record<string, unknown> {
+  try {
+    const parsed = JSON.parse(String(value || "{}"));
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function mapMessage(row: any): ChatMessage {
+  const metadata = parseMetadata(row.metadata_json);
+  return {
+    id: row.id,
+    conversationId: row.conversation_id,
+    role: row.role === "user" ? "user" : "xiaozai",
+    content: row.content,
+    sequenceNo: Number(row.sequence_no),
+    createdAt: row.created_at,
+    type: ["chat", "draft", "safety", "system"].includes(String(metadata.type))
+      ? metadata.type as ChatMessage["type"]
+      : "chat",
+    draft: metadata.draft && typeof metadata.draft === "object" ? metadata.draft as StructuredDraft : null,
+    model: row.model || null,
+    safetyLevel: row.safety_level || null,
+  };
+}
+
+function legacyFallback(sessionId: string, raw: string): ChatMessage[] {
+  try {
+    const parsed = JSON.parse(raw || "[]");
+    if (!Array.isArray(parsed)) return [];
+    return parsed.flatMap((item, index) => {
+      if (!item || typeof item.content !== "string" || !["user", "xiaozai", "assistant"].includes(String(item.role))) return [];
+      return [{
+        id: `legacy-fallback-${sessionId}-${index + 1}`,
+        conversationId: sessionId,
+        role: item.role === "user" ? "user" as const : "xiaozai" as const,
+        content: item.content,
+        sequenceNo: index + 1,
+        createdAt: typeof item.createdAt === "string" ? item.createdAt : "",
+        type: item.type,
+        draft: item.draft || null,
+        model: null,
+        safetyLevel: item.draft?.riskLevel || null,
+      }];
+    });
+  } catch {
+    return [];
+  }
+}
+
+function messagesForConversation(userId: string, conversationId: string): ChatMessage[] {
+  const rows = getDb().prepare(
+    `SELECT m.* FROM messages m
+     JOIN chat_sessions c ON c.id = m.conversation_id
+     WHERE m.conversation_id = ? AND m.user_id = ? AND c.user_id = ?
+     ORDER BY m.sequence_no ASC`
+  ).all(conversationId, userId, userId) as any[];
+  return rows.map(mapMessage);
+}
+
+function mapChatSession(row: any): ChatSessionRow {
+  const persisted = messagesForConversation(row.user_id, row.id);
+  return {
+    id: row.id,
+    userId: row.user_id,
+    startedAt: row.started_at,
+    endedAt: row.ended_at || null,
+    title: row.title || null,
+    status: row.status || "active",
+    createdAt: row.created_at || row.started_at,
+    updatedAt: row.updated_at || row.started_at,
+    messages: persisted.length > 0 ? persisted : legacyFallback(row.id, row.messages),
+  };
+}
+
+function insertMessage(database: ReturnType<typeof getDb>, userId: string, sessionId: string, message: NewChatMessage, sequenceNo: number): ChatMessage {
+  const id = message.id || newId("msg");
+  if (message.id) {
+    const duplicate = database.prepare("SELECT * FROM messages WHERE id = ?").get(id) as any;
+    if (duplicate) {
+      if (duplicate.user_id !== userId || duplicate.conversation_id !== sessionId || duplicate.content !== message.content) {
+        throw new Error("消息 ID 已被其他内容使用");
+      }
+      return mapMessage(duplicate);
+    }
+  }
+  const metadata = JSON.stringify({ type: message.type || "chat", draft: message.draft || null });
+  database.prepare(`
+    INSERT INTO messages
+    (id, conversation_id, user_id, role, content, sequence_no, created_at, model, safety_level, metadata_json)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    id,
+    sessionId,
+    userId,
+    message.role === "xiaozai" ? "assistant" : "user",
+    message.content,
+    sequenceNo,
+    message.createdAt,
+    message.model || null,
+    message.safetyLevel || null,
+    metadata
+  );
+  return mapMessage(database.prepare("SELECT * FROM messages WHERE id = ?").get(id));
+}
+
 export function startChatSession(userId: string, opening: string): ChatSessionRow {
-  const db = getDb();
+  const database = getDb();
   const id = newId("chs");
   const startedAt = nowIso();
-  const messages: ChatMessage[] = [
-    {
+  database.exec("BEGIN IMMEDIATE");
+  try {
+    database.prepare(`
+      INSERT INTO chat_sessions
+      (id, user_id, started_at, messages, status, created_at, updated_at)
+      VALUES (?, ?, ?, '[]', 'active', ?, ?)
+    `).run(id, userId, startedAt, startedAt, startedAt);
+    const openingMessage = insertMessage(database, userId, id, {
       role: "xiaozai",
       content: opening,
       createdAt: startedAt,
       type: "chat",
-    },
-  ];
-  db.prepare("INSERT INTO chat_sessions (id, user_id, started_at, messages) VALUES (?, ?, ?, ?)").run(
-    id,
-    userId,
-    startedAt,
-    JSON.stringify(messages)
-  );
+    }, 1);
+    database.prepare("UPDATE chat_sessions SET messages = ? WHERE id = ?").run(JSON.stringify([openingMessage]), id);
+    database.exec("COMMIT");
+  } catch (error) {
+    database.exec("ROLLBACK");
+    throw error;
+  }
   return getChatSession(userId, id)!;
 }
 
@@ -700,40 +837,76 @@ export function getChatSession(userId: string, sessionId: string): ChatSessionRo
   const row = getDb()
     .prepare("SELECT * FROM chat_sessions WHERE id = ? AND user_id = ?")
     .get(sessionId, userId) as any;
-  if (!row) return null;
-  return {
-    id: row.id,
-    userId: row.user_id,
-    startedAt: row.started_at,
-    messages: JSON.parse(row.messages || "[]"),
-  };
+  return row ? mapChatSession(row) : null;
+}
+
+export function getChatMessage(userId: string, conversationId: string, messageId: string): ChatMessage | null {
+  const row = getDb().prepare(`
+    SELECT m.* FROM messages m JOIN chat_sessions c ON c.id = m.conversation_id
+    WHERE m.id = ? AND m.conversation_id = ? AND m.user_id = ? AND c.user_id = ?
+  `).get(messageId, conversationId, userId, userId) as any;
+  return row ? mapMessage(row) : null;
 }
 
 export function appendChatMessages(
   userId: string,
   sessionId: string,
-  newMessages: ChatMessage[]
+  newMessages: NewChatMessage[]
 ): ChatSessionRow {
-  const session = getChatSession(userId, sessionId);
-  if (!session) throw new Error("会话不存在");
-  getDb()
-    .prepare("UPDATE chat_sessions SET messages = ? WHERE id = ? AND user_id = ?")
-    .run(JSON.stringify([...session.messages, ...newMessages]), sessionId, userId);
+  const database = getDb();
+  database.exec("BEGIN IMMEDIATE");
+  try {
+    const owned = database.prepare("SELECT id FROM chat_sessions WHERE id = ? AND user_id = ?").get(sessionId, userId);
+    if (!owned) throw new Error("会话不存在或无权访问");
+    let sequenceNo = Number((database.prepare(
+      "SELECT COALESCE(MAX(sequence_no), 0) AS max_sequence FROM messages WHERE conversation_id = ?"
+    ).get(sessionId) as { max_sequence: number }).max_sequence);
+    for (const message of newMessages) {
+      if (message.id) {
+        const duplicate = database.prepare("SELECT * FROM messages WHERE id = ?").get(message.id) as any;
+        if (duplicate) {
+          if (duplicate.user_id !== userId || duplicate.conversation_id !== sessionId || duplicate.content !== message.content) {
+            throw new Error("消息 ID 已被其他内容使用");
+          }
+          continue;
+        }
+      }
+      sequenceNo += 1;
+      insertMessage(database, userId, sessionId, message, sequenceNo);
+    }
+    const allMessages = messagesForConversation(userId, sessionId);
+    database.prepare(
+      "UPDATE chat_sessions SET messages = ?, updated_at = ? WHERE id = ? AND user_id = ?"
+    ).run(JSON.stringify(allMessages), nowIso(), sessionId, userId);
+    database.exec("COMMIT");
+  } catch (error) {
+    database.exec("ROLLBACK");
+    throw error;
+  }
   return getChatSession(userId, sessionId)!;
+}
+
+export function updateChatMessageSafety(
+  userId: string,
+  conversationId: string,
+  messageId: string,
+  safetyLevel: RiskLevel
+): boolean {
+  const result = getDb().prepare(`
+    UPDATE messages SET safety_level = ?
+    WHERE id = ? AND conversation_id = ? AND user_id = ?
+      AND EXISTS (SELECT 1 FROM chat_sessions c WHERE c.id = messages.conversation_id AND c.user_id = ?)
+  `).run(safetyLevel, messageId, conversationId, userId, userId);
+  return result.changes > 0;
 }
 
 export function listChatSessions(userId: string, limit = 30): ChatSessionRow[] {
   const rows = getDb()
     .prepare(
-      `SELECT * FROM chat_sessions WHERE user_id = ? ORDER BY datetime(started_at) DESC LIMIT ?`
+      `SELECT * FROM chat_sessions WHERE user_id = ? ORDER BY datetime(COALESCE(updated_at, started_at)) DESC LIMIT ?`
     )
     .all(userId, limit) as any[];
-  return rows.map((row) => ({
-    id: row.id,
-    userId: row.user_id,
-    startedAt: row.started_at,
-    messages: JSON.parse(row.messages || "[]"),
-  }));
+  return rows.map(mapChatSession);
 }
 
 export function countsForUser(userId: string): { recordCount: number; chatCount: number; guardCount: number } {

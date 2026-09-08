@@ -12,6 +12,12 @@
 - [Memory Model Plan](./phase1/MEMORY_MODEL_PLAN.md)
 - [Conversation Evaluation Plan](./phase1/CONVERSATION_EVAL_PLAN.md)
 
+## Phase 2A / Conversation Foundation
+
+- [Message 持久化架构](./phase2a/PHASE2A_ARCHITECTURE.md)
+- [Migration Report](./phase2a/PHASE2A_MIGRATION_REPORT.md)
+- [Phase 2A Changelog](./phase2a/PHASE2A_CHANGELOG.md)
+
 ## 产品资料
 
 - [产品需求文档](./PRD.md)：用户、问题、范围、需求和验收标准。

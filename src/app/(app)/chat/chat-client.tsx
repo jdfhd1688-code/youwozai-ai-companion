@@ -13,14 +13,16 @@ import {
   subscribeAudioUnlock,
   unlockAudioSession,
 } from "@/lib/audio-session";
-import type { PublicUser, StructuredDraft } from "@/lib/data-access";
+import type { ChatMessage, ChatSessionRow, PublicUser, StructuredDraft } from "@/lib/data-access";
 
 type Bubble = {
   id: string;
   role: "user" | "xiaozai";
   content: string;
-  type?: "chat" | "draft" | "safety";
+  type?: "chat" | "draft" | "safety" | "system";
   draft?: StructuredDraft | null;
+  sequenceNo?: number;
+  createdAt?: string;
 };
 
 const EXPRESSION_PROMPTS = [
@@ -29,17 +31,26 @@ const EXPRESSION_PROMPTS = [
   "其实我也说不清楚……",
 ];
 
-export default function ChatClient({ user: _user, opening }: { user: PublicUser; opening: string }) {
+export default function ChatClient({
+  user: _user,
+  opening,
+  initialSession,
+}: {
+  user: PublicUser;
+  opening: string;
+  initialSession: ChatSessionRow | null;
+}) {
   const voice = useVoiceSnapshot();
-  const [bubbles, setBubbles] = useState<Bubble[]>([
+  const [bubbles, setBubbles] = useState<Bubble[]>(initialSession?.messages || [
     { id: "opening", role: "xiaozai", content: opening, type: "chat" },
   ]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
-  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(initialSession?.id || null);
   const [toast, setToast] = useState("");
   const [showSafety, setShowSafety] = useState(false);
   const [draftCard, setDraftCard] = useState<StructuredDraft | null>(null);
+  const [draftSourceMessageId, setDraftSourceMessageId] = useState<string | null>(null);
   const [lastSavedNotification, setLastSavedNotification] = useState<any>(null);
   const [voiceSettings, setVoiceSettings] = useState({ autoPlay: false, speed: "natural" as VoiceSpeed });
   const [audioUnlocked, setAudioUnlocked] = useState(false);
@@ -87,10 +98,11 @@ export default function ChatClient({ user: _user, opening }: { user: PublicUser;
     voicePlayback.stop();
     const request = new AbortController();
     chatRequestRef.current = request;
+    const startsNewConversation = !sessionId;
     setInput("");
     setDraftCard(null);
     setBusy(true);
-    const userBubble: Bubble = { id: `u-${Date.now()}`, role: "user", content: text, type: "chat" };
+    const userBubble: Bubble = { id: `pending-${Date.now()}`, role: "user", content: text, type: "chat" };
     setBubbles((prev) => [...prev, userBubble]);
     // Audio permission must never delay text chat or the safety workflow.
     void unlockPromise;
@@ -106,14 +118,12 @@ export default function ChatClient({ user: _user, opening }: { user: PublicUser;
       if (!res.ok) throw new Error(data.error || "没有说出去，再试一次");
       setSessionId(data.sessionId);
       const reply = data.reply as { kind: string; draft?: StructuredDraft | null };
-      const bubble: Bubble = {
-        id: `x-${Date.now()}`,
-        role: "xiaozai",
-        content: data.messages[data.messages.length - 1]?.content || data.replyText || "",
-        type: reply.kind === "safety" ? "safety" : "chat",
-        draft: reply.kind === "draft" || reply.kind === "safety" ? reply.draft : null,
-      };
-      setBubbles((prev) => [...prev, bubble]);
+      const persistedMessages = data.messages as ChatMessage[];
+      const bubble = data.assistantMessage as ChatMessage;
+      setBubbles((previous) => startsNewConversation
+        ? persistedMessages
+        : [...previous.filter((item) => item.id !== userBubble.id), data.userMessage as ChatMessage, bubble]);
+      setDraftSourceMessageId(data.userMessage?.id || null);
       void unlockPromise.then(() => {
         if (request.signal.aborted || document.hidden || epoch !== playbackEpoch.current) return;
         const settings = settingsRef.current;
@@ -146,11 +156,12 @@ export default function ChatClient({ user: _user, opening }: { user: PublicUser;
       const res = await fetch("/api/chat", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId, ...draft }),
+        body: JSON.stringify({ sessionId, sourceMessageId: draftSourceMessageId, ...draft }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "保存没有成功");
       setDraftCard(null);
+      setDraftSourceMessageId(null);
       setBubbles((prev) => [
         ...prev,
         {
@@ -183,6 +194,7 @@ export default function ChatClient({ user: _user, opening }: { user: PublicUser;
     setBubbles([]);
     setSessionId(null);
     setDraftCard(null);
+    setDraftSourceMessageId(null);
     setShowSafety(false);
     setLastSavedNotification(null);
     setInput("");
@@ -202,7 +214,13 @@ export default function ChatClient({ user: _user, opening }: { user: PublicUser;
         ) : null}
 
         {bubbles.map((b) => (
-          <div key={b.id} className="row-start gap-6" style={{ alignItems: "flex-end" }}>
+          <div
+            key={b.id}
+            className="row-start gap-6"
+            style={{ alignItems: "flex-end" }}
+            data-message-id={b.id}
+            data-sequence-no={b.sequenceNo}
+          >
             {b.role === "xiaozai" ? (
               <div className={speakingBubbleId === b.id ? "speaking-mascot" : ""} style={{ flex: "0 0 auto", width: 36 }}>
                 <Mascot size={36} mood={b.type === "safety" ? "comforting" : speakingBubbleId === b.id ? "speaking" : "listening"} />

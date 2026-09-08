@@ -3,8 +3,11 @@ import { apiUserOr401, jsonError } from "@/lib/api-utils";
 import {
   appendChatMessages,
   getChatSession,
+  getChatMessage,
+  listChatSessions,
   startChatSession,
   insertEmotionRecord,
+  updateChatMessageSafety,
 } from "@/lib/data-access";
 import { extractEmotionDraft, localReply, pickOpening } from "@/lib/companion";
 import { extractStructuredDraft, generateCompanionText, llmConfigured } from "@/lib/llm";
@@ -43,14 +46,23 @@ export async function POST(request: Request) {
   if (text.length > 1200) return jsonError("这一段有点长，可以慢慢分段说给小在听");
 
   const sessionIdRaw = body.sessionId ? String(body.sessionId) : null;
-  const session =
-    (sessionIdRaw && getChatSession(user.id, sessionIdRaw)) || startChatSession(user.id, pickOpening());
+  const existingSession = sessionIdRaw ? getChatSession(user.id, sessionIdRaw) : null;
+  if (sessionIdRaw && !existingSession) return jsonError("会话不存在或无权访问", 404);
+  const session = existingSession || startChatSession(user.id, pickOpening());
 
-  const userMessage: ChatMessage = { role: "user", content: text, createdAt: new Date().toISOString(), type: "chat" };
+  // Persist the user's words before any external classification or generation.
+  const afterUser = appendChatMessages(user.id, session.id, [{
+    role: "user",
+    content: text,
+    createdAt: new Date().toISOString(),
+    type: "chat",
+  }]);
+  const userMessage = afterUser.messages[afterUser.messages.length - 1];
   const historyUserMessages = session.messages.filter((m) => m.role === "user").length;
   const ruleRisk = assessRisk(text);
   const semanticRisk = await classifyRiskWithLLM(text);
   const fusedRisk = deterministicRiskFusion(ruleRisk, semanticRisk);
+  updateChatMessageSafety(user.id, session.id, userMessage.id, fusedRisk.level);
 
   const baseReply = localReply({
     text,
@@ -72,19 +84,23 @@ export async function POST(request: Request) {
     if (fusedRisk.level === "high") draft.riskLevel = "high";
     reply.draft = draft;
   }
-  const xiaozaiMessage: ChatMessage = {
+  const xiaozaiMessage: Omit<ChatMessage, "id" | "conversationId" | "sequenceNo"> = {
     role: "xiaozai",
     content: reply.message,
     createdAt: new Date().toISOString(),
     type: reply.kind === "safety" ? "safety" : "chat",
     draft,
+    safetyLevel: fusedRisk.level,
   };
 
-  const updated = appendChatMessages(user.id, session.id, [userMessage, xiaozaiMessage]);
+  const updated = appendChatMessages(user.id, session.id, [xiaozaiMessage]);
   const sessionMessages = updated.messages.slice(-12);
+  const assistantMessage = updated.messages[updated.messages.length - 1];
   return NextResponse.json({
     sessionId: session.id,
     messages: sessionMessages,
+    userMessage: getChatMessage(user.id, session.id, userMessage.id),
+    assistantMessage,
     reply: { kind: reply.kind, draft },
     safety: reply.kind === "safety",
   });
@@ -94,12 +110,25 @@ export async function PUT(request: Request) {
   const { user, response: notLoggedIn } = await apiUserOr401();
   if (!user) return notLoggedIn!;
   const body = await request.json().catch(() => ({}));
-  const draft = validateDraft(body);
+  let draft = validateDraft(body);
   if (!draft) return jsonError("这份心情记录还缺少必要字段，请先确认完整");
+  const conversationId = body.sessionId ? String(body.sessionId) : null;
+  if (!conversationId || !getChatSession(user.id, conversationId)) return jsonError("会话不存在或无权访问", 404);
+  const requestedSourceMessageId = body.sourceMessageId ? String(body.sourceMessageId) : null;
+  const sourceMessage = requestedSourceMessageId
+    ? getChatMessage(user.id, conversationId, requestedSourceMessageId)
+    : null;
+  if (requestedSourceMessageId && (!sourceMessage || sourceMessage.role !== "user")) {
+    return jsonError("来源消息不存在或无权访问", 404);
+  }
+  if (sourceMessage?.safetyLevel === "high") draft = { ...draft, riskLevel: "high" };
   const record = insertEmotionRecord({
     userId: user.id,
     ...draft,
-    rawConversationRef: body.sessionId ? `chat:${String(body.sessionId)}` : null,
+    rawConversationRef: `chat:${conversationId}`,
+    sourceConversationId: conversationId,
+    sourceMessageId: sourceMessage?.id || null,
+    extractionVersion: "emotion-v1",
   });
 
   const notification = runNotificationWorkflow({
@@ -117,4 +146,15 @@ export async function PUT(request: Request) {
     },
     { status: 201 }
   );
+}
+
+export async function GET(request: Request) {
+  const { user, response: notLoggedIn } = await apiUserOr401();
+  if (!user) return notLoggedIn!;
+  const conversationId = new URL(request.url).searchParams.get("sessionId");
+  const session = conversationId
+    ? getChatSession(user.id, conversationId)
+    : listChatSessions(user.id, 1)[0] || null;
+  if (conversationId && !session) return jsonError("会话不存在或无权访问", 404);
+  return NextResponse.json({ session });
 }
