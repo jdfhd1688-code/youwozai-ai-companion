@@ -2,14 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MessageCircle, History, Mail, Shield, UserRound } from "lucide-react";
+import { MessageCircle, History, Mail, Shield } from "lucide-react";
 
 const ITEMS = [
-  { href: "/home", label: "首页", icon: MessageCircle },
-  { href: "/records", label: "心情", icon: History },
+  { href: "/chat", label: "聊聊", icon: MessageCircle },
+  { href: "/records", label: "这一段路", icon: History },
   { href: "/letter", label: "来信", icon: Mail },
   { href: "/guardians", label: "守护圈", icon: Shield },
-  { href: "/privacy", label: "我", icon: UserRound },
 ];
 
 export default function AppNav() {

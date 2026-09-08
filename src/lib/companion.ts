@@ -187,7 +187,7 @@ export function localReply(input: {
   };
 }
 
-function shouldExtractImmediately(text: string, draft: StructuredDraft): boolean {
+function shouldExtractImmediately(text: string, _draft: StructuredDraft): boolean {
   const rich =
     text.length >= 70 || /(后来|然后|当时|其实|因为|所以|最近|每天|一直|可是|但是)/.test(text);
   return rich;

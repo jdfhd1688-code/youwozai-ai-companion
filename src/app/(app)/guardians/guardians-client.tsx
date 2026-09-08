@@ -28,15 +28,6 @@ export default function GuardiansClient({
     setTimeout(() => setToast(""), 3000);
   }
 
-  async function refreshAll() {
-    const [g, n] = await Promise.all([
-      fetch("/api/guardians").then((r) => r.json()),
-      fetch("/api/notifications").then((r) => r.json()),
-    ]);
-    setGuardians(g.guardians || []);
-    setEvents(n.events || []);
-  }
-
   async function addGuardian(input: {
     displayName: string;
     relationship: string;
@@ -263,7 +254,7 @@ function GuardianCard({ guardian, onPatch, onRemove, onPreview }: {
   );
 }
 
-function AddGuardianForm({ user, onCancel, onSubmit }: {
+function AddGuardianForm({ user: _user, onCancel, onSubmit }: {
   user: PublicUser;
   onCancel: () => void;
   onSubmit: (data: {

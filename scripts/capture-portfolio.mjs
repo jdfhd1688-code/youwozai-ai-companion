@@ -8,6 +8,7 @@ const edgePath = process.env.EDGE_PATH || "C:\\Program Files (x86)\\Microsoft\\E
 const outputRoot = path.resolve(process.cwd(), "portfolio");
 const screenshotDir = path.join(outputRoot, "screenshots");
 const videoPath = path.join(outputRoot, "有我在APP演示视频.webm");
+const captureVideo = process.env.CAPTURE_VIDEO !== "false";
 
 await fs.mkdir(screenshotDir, { recursive: true });
 
@@ -77,6 +78,9 @@ try {
   await sendChat("这是产品安全流程演示：最近我总想消失，早上也不想醒来，觉得没有意义。");
   await shot("06-High-Risk安全流程.png");
 
+  await page.goto(`${baseURL}/privacy`);
+  await shot("07-AI记忆与隐私.png");
+
   const screenshotFiles = [
     "01-首页与小在.png",
     "02-陪伴聊天与情绪草稿.png",
@@ -84,8 +88,14 @@ try {
     "04-每周来信.png",
     "05-守护圈权限.png",
     "06-High-Risk安全流程.png",
+    "07-AI记忆与隐私.png",
   ];
-  const slides = await Promise.all(screenshotFiles.map(async (file) => ({
+  if (!captureVideo) {
+    console.log(JSON.stringify({ screenshots: screenshotFiles.length, video: "skipped" }, null, 2));
+    process.exitCode = 0;
+  } else {
+  const videoScreenshotFiles = screenshotFiles.slice(0, 6);
+  const slides = await Promise.all(videoScreenshotFiles.map(async (file) => ({
     src: `data:image/png;base64,${(await fs.readFile(path.join(screenshotDir, file))).toString("base64")}`,
     title: ({
       "01-首页与小在.png": "从轻量陪伴开始",
@@ -177,7 +187,7 @@ try {
       ctx.restore(); ctx.save();
       ctx.globalAlpha = 1;
     };
-    const drawOutro = (progress) => {
+    const drawOutro = () => {
       background();
       text("这不是只有前端的页面原型", 100, 180, 44, 800);
       text("Next.js 全栈  ·  SQLite  ·  权限矩阵", 104, 270, 26, 600, "#9a6a3c");
@@ -233,6 +243,7 @@ try {
   await fs.writeFile(videoPath, Buffer.from(await fixedVideo.arrayBuffer()));
   await videoPage.close();
   console.log(JSON.stringify({ screenshots: screenshotFiles.length, videoPath }, null, 2));
+  }
 } finally {
   await browser.close();
 }

@@ -66,7 +66,7 @@ export default async function HomePage() {
 
       <Link href="/records" className="card row" style={{ display: "flex", marginTop: 14 }}>
         <div>
-          <div style={{ fontWeight: 750 }}>看看我走过的日子</div>
+          <div style={{ fontWeight: 750 }}>看看我的这一段路</div>
           <p className="tiny muted" style={{ margin: "5px 0 0" }}>每一段被记录下来的心情，都在那里安静地陪着你</p>
         </div>
         <History size={22} style={{ color: "#b99b7c", flex: "0 0 auto" }} />

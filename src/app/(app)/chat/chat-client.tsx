@@ -6,7 +6,7 @@ import Mascot from "@/components/mascot";
 import { VoiceButton, useVoiceSnapshot } from "@/components/voice-player";
 import { voicePlayback } from "@/lib/voice-playback";
 import type { VoiceSpeed } from "@/lib/voice";
-import { SAFETY_ACTIONS, SAFETY_DETAILS } from "@/lib/safety-content";
+import { SAFETY_DETAILS } from "@/lib/safety-content";
 import {
   isAudioUnlocked,
   shouldAutoPlay,
@@ -29,7 +29,7 @@ const EXPRESSION_PROMPTS = [
   "其实我也说不清楚……",
 ];
 
-export default function ChatClient({ user, opening }: { user: PublicUser; opening: string }) {
+export default function ChatClient({ user: _user, opening }: { user: PublicUser; opening: string }) {
   const voice = useVoiceSnapshot();
   const [bubbles, setBubbles] = useState<Bubble[]>([
     { id: "opening", role: "xiaozai", content: opening, type: "chat" },
@@ -63,12 +63,13 @@ export default function ChatClient({ user, opening }: { user: PublicUser; openin
   useEffect(() => {
     const unsubscribe = subscribeAudioUnlock(setAudioUnlocked);
     const controller = new AbortController();
+    const playbackEpochRef = playbackEpoch;
     fetch("/api/settings/voice")
       .then((r) => { if (!r.ok) throw new Error("settings"); return r.json(); })
       .then((data) => { if (!controller.signal.aborted) setVoiceSettings(data); })
       .catch(() => undefined);
     return () => {
-      playbackEpoch.current++;
+      playbackEpochRef.current++;
       controller.abort();
       chatRequestRef.current?.abort();
       chatRequestRef.current = null;

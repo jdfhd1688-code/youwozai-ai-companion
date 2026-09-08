@@ -2,7 +2,7 @@
 
 ## 内容
 
-- `screenshots`：6 张使用 Demo 账号和模拟文本生成的产品截图。
+- `screenshots`：7 张使用 Demo 账号和模拟文本生成的产品截图，覆盖 AI Memory / Privacy。
 - `有我在APP演示视频.webm`：约 88 秒、无旁白的产品演示视频，包含字幕和能力边界说明。
 
 ## 脱敏规则

@@ -2,6 +2,16 @@
 
 这套资料用于证明项目采用规范驱动开发，而不只是生成前端页面。所有“已实现”结论都应能在代码、测试或演示中找到证据；没有真实数据的部分明确标为待验证。
 
+## Phase 1 / 2.0 演进资料
+
+- [当前状态审查](./phase1/CURRENT_STATE_AUDIT.md)
+- [2.0 Gap Analysis](./phase1/YOUWOZAI_2.0_GAP_ANALYSIS.md)
+- [Phase 1 Changelog](./phase1/PHASE1_CHANGELOG.md)
+- [Phase 2 Conversation Engine 建议](./phase1/PHASE2_RECOMMENDATIONS.md)
+- [数据模型演进](./phase1/DATA_MODEL_EVOLUTION.md)
+- [Memory Model Plan](./phase1/MEMORY_MODEL_PLAN.md)
+- [Conversation Evaluation Plan](./phase1/CONVERSATION_EVAL_PLAN.md)
+
 ## 产品资料
 
 - [产品需求文档](./PRD.md)：用户、问题、范围、需求和验收标准。

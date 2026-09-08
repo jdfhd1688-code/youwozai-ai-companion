@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { apiUserOr401, jsonError } from "@/lib/api-utils";
+import { apiUserOr401 } from "@/lib/api-utils";
 import { updateUserProfile, deleteUserAndData } from "@/lib/data-access";
 import { clearSessionCookie } from "@/lib/auth";
 

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { apiUserOr401, jsonError } from "@/lib/api-utils";
-import { updateNotificationEventStatus, listNotificationEvents } from "@/lib/data-access";
+import { updateNotificationEventStatus } from "@/lib/data-access";
 
 type Params = { params: Promise<{ id: string }> };
 

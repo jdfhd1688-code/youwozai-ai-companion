@@ -10,7 +10,13 @@ export default async function RecordsPage() {
   if (!user) return null;
   const records = listEmotionRecords(user.id);
   return (
-    <PageShell title="我走过的日子" subtitle={records.length ? `${records.length} 段被好好接住的心情` : "你留下的每一句，都会在这里"}>
+    <PageShell title="我的这一段路" subtitle={records.length ? `${records.length} 段被好好接住的经历` : "你留下的每一句，都会在这里"}>
+      <section className="soft-card" style={{ marginBottom: 14 }}>
+        <strong>先从你确认保存过的经历慢慢回望</strong>
+        <p className="tiny muted" style={{ margin: "6px 0 0", lineHeight: 1.7 }}>
+          现在这里按时间放好你的情绪和经历。以后只有经过你确认，小在才会把反复出现的重要事情、人物和一段时间的变化串在一起。
+        </p>
+      </section>
       {records.length === 0 ? (
         <section className="card empty">
           <p>还没有保存过心情记录。</p>

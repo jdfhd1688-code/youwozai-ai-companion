@@ -1,14 +1,12 @@
-import { getDb, hashPassword, nowIso, newId } from "../src/lib/db";
+import { getDb } from "../src/lib/db";
 import {
   createUser,
-  findUserByEmail,
   insertGuardian,
   insertEmotionRecord,
   insertNotificationEvent,
   addAiMemory,
   startChatSession,
   updateNotificationEventStatus,
-  insertWeeklyLetter,
 } from "../src/lib/data-access";
 import { generateLetterForUser } from "../src/lib/weekly-letter";
 import { pickOpening } from "../src/lib/companion";
@@ -113,7 +111,6 @@ for (const item of seedRecords) {
 }
 
 // 模拟审计：高风险记录 -> 待确认、已发送、已撤销各留一条轨迹
-const now = nowIso();
 const pendingEvent = insertNotificationEvent({
   userId: demo.id,
   guardianId: guardianRow.id,

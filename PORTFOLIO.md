@@ -32,7 +32,7 @@
 - Cookie Session、本地密码哈希与用户级数据隔离。
 - OpenAI-compatible LLM 与 TTS Provider，失败时分别降级为规则引擎和浏览器语音。
 - High Risk 固定安全流程优先于生成式回复。
-- 35 项自动化测试覆盖风险、工作流、展示规则和语音播放并发。
+- 36 项自动化测试覆盖风险、工作流、展示规则、Phase 1 IA 和语音播放并发。
 
 ### 关键设计取舍
 
@@ -44,7 +44,7 @@
 ### 当前证据
 
 - 本地可运行 Demo：`pnpm install`、`pnpm test`、`pnpm build`、`pnpm dev`。
-- 自动化测试：35 项通过。
+- 自动化测试：36 项通过。
 - 构建：Next.js production build 通过。
 - 真实用户访谈、留存和求助转化数据：尚未采集，不能宣称已验证。
 
@@ -55,7 +55,7 @@
 - 守护人账号：`guardian@youwozai.app` / `Guardian123`
 - 线上 Beta：待部署后补充
 - GitHub 仓库：<https://github.com/jdfhd1688-code/youwozai-ai-companion>
-- [6 张脱敏产品截图](./portfolio/screenshots)
+- [7 张脱敏产品截图](./portfolio/screenshots)
 - [产品演示视频](./portfolio/有我在APP演示视频.webm)
 
 ### 下一步验证

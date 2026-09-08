@@ -6,13 +6,16 @@
 
 ## 自动化测试
 
-当前 `pnpm test` 包含 35 项测试，分为：
+当前 `pnpm test` 包含 36 项测试，分为：
 
 - `risk.test.ts`：基础风险分级。
 - `risk-expanded.test.ts`：扩展表达和边界样本。
 - `workflow.test.ts`：High Risk、守护权限和通知流程。
 - `display.test.ts`：前端展示和敏感内容规则。
 - `voice-playback.test.ts`：解锁、自动播放、暂停恢复、请求取消、超时、fallback 和单音轨。
+- `display.test.ts` 还保护 Phase 1 四模块 IA、基础回顾说明和虚构 Demo 标识。
+
+`pnpm verify:ui` 使用实际浏览器检查移动端六路由、桌面端“这一段路”、新用户空状态、四项一级导航、核心 GET API、console error 和失败请求。
 
 ## 发布前命令
 

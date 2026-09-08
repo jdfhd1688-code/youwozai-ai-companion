@@ -216,7 +216,7 @@ export class VoicePlaybackManager {
         return this.startBuffer(ownerId);
       }
       this.update({ reason: data.reason || "provider_unavailable" });
-    } catch (error) {
+    } catch {
       if (!current()) return "cancelled";
       this.update({ reason: controller.signal.aborted ? "timeout" : "provider_unavailable" });
     } finally {

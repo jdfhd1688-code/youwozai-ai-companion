@@ -8,10 +8,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test:integration": "tsx --test tests/workflow.test.ts",
     "db:init": "tsx scripts/init-db.ts",
     "db:seed": "tsx scripts/seed-db.ts",
     "capture:portfolio": "node scripts/capture-portfolio.mjs",
+    "verify:ui": "node scripts/verify-ui.mjs",
     "test": "tsx --test tests/risk.test.ts tests/workflow.test.ts tests/display.test.ts tests/risk-expanded.test.ts tests/voice-playback.test.ts"
   },
   "engines": {
@@ -24,9 +27,12 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "3.0.0",
     "@types/node": "^22.10.7",
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.3",
+    "eslint": "9.0.0",
+    "eslint-config-next": "15.1.6",
     "fix-webm-duration": "^1.0.6",
     "playwright-core": "^1.63.0",
     "tsx": "^4.19.2",

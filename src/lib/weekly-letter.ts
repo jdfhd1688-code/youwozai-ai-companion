@@ -85,7 +85,7 @@ function pickTrendLabel(chart: ChartData): string {
   return top ? top.label : "复杂";
 }
 
-function composeSummary(chart: ChartData, nickname: string): string {
+function composeSummary(chart: ChartData, _nickname: string): string {
   const top = chart.labelDistribution.slice(0, 2).map((d) => d.label).join("、");
   if (chart.recordCount === 0) return `这周还没有留下记录，等你想说的时候，我都在。`;
   if (chart.recordCount === 1) {
@@ -114,7 +114,7 @@ function composeInsight(chart: ChartData): string {
   return `我发现了一个小小的规律：${parts.join("，")}。这不是诊断，只是一种“原来它常来”的观察。`;
 }
 
-function composePromise(chart: ChartData, nickname: string): string {
+function composePromise(chart: ChartData, _nickname: string): string {
   const top = pickTrendLabel(chart);
   const topCount = chart.labelDistribution[0]?.count || 0;
   if (topCount >= 2) {
@@ -132,7 +132,7 @@ export type LetterPayload = {
   milestones: Array<{ title: string; achieved: boolean; date?: string }>;
 };
 
-export function latestLetterOrNull(userId: string, nickname: string): LetterPayload | null {
+export function latestLetterOrNull(userId: string, _nickname: string): LetterPayload | null {
   const existing = listWeeklyLetters(userId);
   if (existing[0]) {
     return {

@@ -121,6 +121,7 @@ export default function LoginPage() {
 
       <p className="tiny muted center" style={{ marginTop: "18px" }}>
         演示账号：demo@youwozai.app　密码：Capybara123
+        <br />账号内全部经历、关系和情绪内容均为虚构演示数据。
       </p>
     </main>
   );

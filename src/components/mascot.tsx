@@ -10,8 +10,6 @@ export default function Mascot({ size = 150, mood = "smile", className = "" }: M
   const isSpeaking = mood === "speaking";
   const normalized =
     mood === "normal" ? "smile" : mood === "listening" || mood === "speaking" ? "listen" : mood === "comforting" ? "calm" : mood;
-  const eyeY = normalized === "listen" ? 84 : 83;
-  const eyeOpen = normalized === "calm" ? 0.25 : 1;
   const mouth = isSpeaking
     ? "M 100 114 Q 110 123 120 114 Q 110 132 100 114"
     : normalized === "happy"

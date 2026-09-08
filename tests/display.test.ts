@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import { VoiceCoordinator } from "../src/lib/voice";
 import { SAFETY_ACTIONS } from "../src/lib/safety-content";
 import {
@@ -100,4 +101,16 @@ test("LLM extraction retries once and falls back when JSON is invalid", async ()
   const result = await extractStructuredDraft("我想消失", fallback, fakeFetch);
   assert.equal(calls, 2);
   assert.deepEqual(result, fallback);
+});
+
+test("phase 1 information architecture uses 2.0 terminology and marks demo data as fictional", () => {
+  const nav = fs.readFileSync("src/components/app-nav.tsx", "utf8");
+  const records = fs.readFileSync("src/app/(app)/records/page.tsx", "utf8");
+  const login = fs.readFileSync("src/app/(auth)/login/page.tsx", "utf8");
+  assert.match(nav, /href: "\/chat", label: "聊聊"/);
+  assert.match(nav, /label: "这一段路"/);
+  assert.doesNotMatch(nav, /href: "\/privacy"/);
+  assert.match(records, /title="我的这一段路"/);
+  assert.match(records, /只有经过你确认/);
+  assert.match(login, /均为虚构演示数据/);
 });
