@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="有我在 AI 陪伴产品公开体验版。使用模拟数据，无需登录。" />
+    <meta name="theme-color" content="#f8f2e9" />
+    <title>有我在 · 公开 Demo</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="demo-banner" role="note">
+        <strong>公开 Demo</strong>
+        <span>这是公开体验版，请勿输入真实隐私信息。</span>
+        <span lang="en">This is a public demo. Please do not enter real sensitive or private information.</span>
+      </aside>
+
+      <header class="page-head" id="page-head" hidden>
+        <button class="icon-button" id="back-home" type="button" aria-label="返回首页">←</button>
+        <div><h1 id="page-title"></h1><p id="page-subtitle"></p></div>
+      </header>
+
+      <section class="content" id="content" aria-live="polite"></section>
+
+      <nav class="bottom-nav" aria-label="主要功能">
+        <button type="button" data-view="home"><b>⌂</b><span>首页</span></button>
+        <button type="button" data-view="records"><b>◷</b><span>心情</span></button>
+        <button type="button" data-view="letter"><b>✉</b><span>来信</span></button>
+        <button type="button" data-view="guardians"><b>♢</b><span>守护圈</span></button>
+        <button type="button" data-view="privacy"><b>○</b><span>隐私</span></button>
+      </nav>
+    </main>
+    <script src="/app.js" defer></script>
+  </body>
+</html>

@@ -18,6 +18,8 @@
     "capture:phase2a": "node scripts/capture-phase2a.mjs",
     "verify:ui": "node scripts/verify-ui.mjs",
     "verify:phase2a": "node scripts/verify-phase2a.mjs",
+    "demo:check": "node scripts/verify-public-demo.mjs",
+    "demo:browser": "node scripts/verify-public-demo-browser.mjs",
     "test": "tsx --test tests/risk.test.ts tests/workflow.test.ts tests/display.test.ts tests/risk-expanded.test.ts tests/voice-playback.test.ts tests/message-persistence.test.ts"
   },
   "engines": {

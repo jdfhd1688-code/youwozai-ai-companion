@@ -4,9 +4,9 @@
 
 本项目是 AI Solution 岗位作品集 / 可运行 MVP Demo。
 
-**线上公开 Demo：** https://youwozai-demo.jdfhd1688.chatgpt.site
+**线上公开 Demo：** 部署后更新为新的 Netlify 公共地址。
 
-> 线上版本使用独立的模拟数据环境，仅供产品体验，请勿输入真实隐私信息。
+> 线上版本使用浏览器本地模拟数据，无需登录；请勿输入真实隐私信息。公开 Demo 不上传访客输入，不共享不同访客的数据。
 
 ![有我在首页](./portfolio/screenshots/01-首页与小在.png)
 

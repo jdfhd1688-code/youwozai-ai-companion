@@ -61,3 +61,10 @@
 - 使用 SQLite 持久化用户、记录、守护权限、通知、记忆与设置。
 - 外部 LLM 不可用时使用本地确定性引擎。
 - 真实短信、微信、Push 和电话通知未实现。
+# 2026-09-16 — Public Demo deployment surface
+
+- Added a login-free static public Demo under `public-demo/` for Netlify deployment.
+- Demo state is isolated to each browser through `localStorage`; no visitor input is uploaded or shared.
+- Added bilingual privacy warnings and preserved the chat, emotion record, weekly letter, guardian circle and High Risk Safety Workflow demonstrations.
+- Added `pnpm demo:check` and restrictive static security headers.
+- Known limitation: Demo state is device-local and can be cleared by browser storage controls; voice uses the browser Speech Synthesis fallback.
