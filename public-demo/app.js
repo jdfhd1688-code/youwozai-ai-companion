@@ -64,7 +64,7 @@ function recordsView() {
 }
 function letterView() {
   const avg = (state.records.reduce((sum, record) => sum + record.intensity, 0) / state.records.length).toFixed(1);
-  return `<div class="stack"><article class="notice"><b>成长相册 · 模拟数据</b><p>✓ 第一次认真记录自己的感受<br>✓ 连续记录 7 天<br>✓ 第一次完成一封每周来信</p></article><article class="letter"><h2>阿乐，见字如面</h2><small>公开 Demo 模拟周报</small><p>这周你一共留下 ${state.records.length} 段心情。你愿意开口的每一天，都不是微不足道的小事。</p><h3>情绪足迹</h3><p>${state.records.length} 段记录 · 平均强度 ${avg}/10</p><div class="bars">${state.records.slice(0, 7).map((record) => `<i style="height:${record.intensity * 8}px"></i>`).join("")}</div><h3>一个模拟观察</h3><p>当计划突然变化时，你更容易感到焦虑；而来自家人的一句问候，会让你重新找到一点安心。</p></article></div>`;
+  return `<div class="stack"><article class="notice"><b>成长相册 · 模拟数据</b><p>✓ 第一次认真记录自己的感受<br>✓ 连续记录 7 天<br>✓ 第一次完成一封每周来信</p></article><article class="letter"><h2>阿乐，见字如面</h2><small>公开 Demo 模拟周报</small><p>这周你一共留下 ${state.records.length} 段心情。你愿意开口的每一天，都不是微不足道的小事。</p><h3>情绪足迹</h3><p>${state.records.length} 段记录 · 平均强度 ${avg}/10</p><div class="bars">${state.records.slice(0, 7).map((record) => `<i class="bar-${record.intensity}"></i>`).join("")}</div><h3>一个模拟观察</h3><p>当计划突然变化时，你更容易感到焦虑；而来自家人的一句问候，会让你重新找到一点安心。</p></article></div>`;
 }
 function permission(key, label, help) {
   return `<div class="permission"><div><b>${label}</b><small>${help}</small></div><button class="switch" role="switch" aria-label="${label}" aria-checked="${Boolean(state.guardian[key])}" data-permission="${key}"></button></div>`;

@@ -4,7 +4,7 @@
 
 本项目是 AI Solution 岗位作品集 / 可运行 MVP Demo。
 
-**线上公开 Demo：** 部署后更新为新的 Netlify 公共地址。
+**线上公开 Demo：** https://resplendent-granita-ad7080.netlify.app
 
 > 线上版本使用浏览器本地模拟数据，无需登录；请勿输入真实隐私信息。公开 Demo 不上传访客输入，不共享不同访客的数据。
 
